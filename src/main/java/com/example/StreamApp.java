@@ -5,7 +5,8 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.VoidFunction2;
-import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.functions;
@@ -56,6 +57,8 @@ public class StreamApp {
                 stringJavaRDD.coalesce(1).saveAsTextFile(rawOutput + "/" + time.toString().split(" ")[0]);
             }
         });
+        
+        
 
         sc.getConf().set("spark.sql.shuffle.partitions", "1");
 
@@ -87,7 +90,7 @@ public class StreamApp {
                     public void call(JavaRDD<String> stringJavaRDD, Time time) throws Exception {
                         logger.info("No of records: " + stringJavaRDD.count());
                         if(!stringJavaRDD.isEmpty()) {
-                            DataFrame df = sqlContext
+                            Dataset<Row> df = sqlContext
                                     .read()
                                     .json(stringJavaRDD)
                                     .filter(functions.col("id").isNotNull())

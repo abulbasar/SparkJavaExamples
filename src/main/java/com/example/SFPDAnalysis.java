@@ -3,12 +3,11 @@ package com.example;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
-import org.apache.spark.sql.api.java.UDF1;
 import org.apache.spark.sql.functions;
-import org.apache.spark.sql.hive.HiveContext;
 import org.apache.spark.sql.types.DataTypes;
 import org.apache.spark.storage.StorageLevel;
 import org.slf4j.Logger;
@@ -47,11 +46,11 @@ public class SFPDAnalysis {
         sparkConf.setIfMissing("spark.master", "local[*]");
 
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
-        SQLContext sqlContext = new HiveContext(sc);
+        SQLContext sqlContext = new SQLContext(sc);
         //SQLContext sqlContext = new SQLContext(sc);
 
         logger.info("Loading sfpd data into a dataframe");
-        DataFrame sfpd = sqlContext
+        Dataset<Row> sfpd = sqlContext
                 .read()
                 .format("csv")
                 .option("header", "true")
@@ -96,7 +95,7 @@ public class SFPDAnalysis {
 
 
 
-        sqlContext.udf().register("myDayOfWeek", new UDF1<String, Integer>() {
+        /*sqlContext.udf().register("myDayOfWeek", new UDF1<String, Integer>() {
             SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aaa");
             Calendar cal = Calendar.getInstance();
 
@@ -107,6 +106,17 @@ public class SFPDAnalysis {
             }
 
         }, DataTypes.IntegerType);
+        */
+        
+        SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aaa");
+        Calendar cal = Calendar.getInstance();
+        
+        sqlContext.udf().register("myDayOfWeek", (String value) -> {
+        	Date date = format.parse(value);
+            cal.setTime(date);
+            return cal.get(Calendar.DAY_OF_WEEK); 
+        },  DataTypes.IntegerType);
+        
 
         logger.info("Calling UDF in dataframe DSL");
         sfpd.select("Date").show(10, false);
@@ -123,8 +133,7 @@ public class SFPDAnalysis {
         sqlContext.sql(sqlText).show();
 
 
-        System.out.println("Process has finished. Press <enter> to exit.");
-        System.in.read();
+        System.out.println("Process has finished.");
 
         sc.stop();
         sc.close();

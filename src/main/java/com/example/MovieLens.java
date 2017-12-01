@@ -1,18 +1,20 @@
 package com.example;
 
-import com.univocity.parsers.csv.CsvParser;
-import com.univocity.parsers.csv.CsvParserSettings;
+import java.util.ArrayList;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.sql.DataFrame;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
 import org.apache.spark.sql.SaveMode;
 import org.apache.spark.sql.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
+import com.univocity.parsers.csv.CsvParser;
+import com.univocity.parsers.csv.CsvParserSettings;
 
 
 
@@ -59,6 +61,8 @@ final public class MovieLens {
         }
 
         JavaRDD<String> moviesData = moviesRdd.filter(s -> !s.startsWith("movieId,title,genres"));
+        
+        
 
 
         JavaRDD<Movie> moviesObjects = moviesData.mapPartitions(input -> {
@@ -69,6 +73,7 @@ final public class MovieLens {
 
             CsvParser parser = new CsvParser(parserSettings);
             ArrayList<Movie> movies = new ArrayList<Movie>();
+        
 
             while (input.hasNext()) {
                 String line = input.next();
@@ -79,7 +84,7 @@ final public class MovieLens {
                 m.setGenres(tokens[2]);
                 movies.add(m);
             }
-            return movies;
+            return movies.iterator();
         });
 
         logger.info("Sample values from moviesObjects RDD ( ... RDD of class Movie");
@@ -88,7 +93,7 @@ final public class MovieLens {
             logger.info(m.toString());
         }
 
-        DataFrame moviesDf = sqlContext.createDataFrame(moviesObjects, Movie.class);
+        Dataset<Row> moviesDf = sqlContext.createDataFrame(moviesObjects, Movie.class);
 
         logger.info("Sample values from moviesDf");
         moviesDf
@@ -130,10 +135,10 @@ final public class MovieLens {
 
                 ratings.add(r);
             }
-            return ratings;
+            return ratings.iterator();
         });
 
-        DataFrame ratingsDf = sqlContext.createDataFrame(ratingsObjects, MovieRating.class);
+        Dataset<Row> ratingsDf = sqlContext.createDataFrame(ratingsObjects, MovieRating.class);
         ratingsDf.printSchema();
 
         logger.info("Show sample values from rating data set");
@@ -144,7 +149,7 @@ final public class MovieLens {
         String sqlText = "select t1.name, t1.movieId, avg(t2.rating) avg_rating from movies t1 left join " +
                 " ratings t2 on t1.movieId = t2.movieId group by t1.movieId, t1.name";
 
-        DataFrame avgMovieRating = sqlContext.sql(sqlText);
+        Dataset<Row> avgMovieRating = sqlContext.sql(sqlText);
 
         avgMovieRating.show(20, false);
 
@@ -159,7 +164,7 @@ final public class MovieLens {
 
 
         logger.info("Calculating avg movie rating using dataframe DSL");
-        DataFrame avgRatingDSL = ratingsDf
+        Dataset<Row> avgRatingDSL = ratingsDf
                 .join(moviesDf, ratingsDf.col("movieId").equalTo(moviesDf.col("movieId")))
                 .groupBy(ratingsDf.col("movieId"), moviesDf.col("name"))
                 .agg(functions.avg(ratingsDf.col("rating")));

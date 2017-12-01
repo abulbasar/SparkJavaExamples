@@ -23,7 +23,7 @@ public class KafkaStreaming {
 	public static void main(String[] args) throws InterruptedException {
 
 		SparkConf conf = new SparkConf().setAppName(
-				StreamingApp.class.getName()).setIfMissing("spark.master",
+				KafkaStreaming.class.getName()).setIfMissing("spark.master",
 				"local[*]");
 
 		JavaSparkContext sc = new JavaSparkContext(conf);

@@ -10,7 +10,7 @@ public class StructuredKafkaSreaming {
 
 	public static void main(String[] args) throws StreamingQueryException {
 		SparkConf conf = new SparkConf()
-			.setAppName(StructuredSreaming.class.getName())
+			.setAppName(StructuredKafkaSreaming.class.getName())
 			.setIfMissing("spark.master", "local[*]");
 		
 		SparkSession spark = SparkSession.builder().config(conf).getOrCreate();

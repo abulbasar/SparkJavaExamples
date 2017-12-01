@@ -1,23 +1,13 @@
 package com.example;
 
-import com.univocity.parsers.csv.CsvParser;
-import com.univocity.parsers.csv.CsvParserSettings;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.rdd.RDD;
-import org.apache.spark.sql.DataFrame;
-import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.SaveMode;
-import org.apache.spark.sql.functions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import scala.Tuple2;
-
-import java.util.ArrayList;
-
-
 
 /*
 * Steps :
@@ -36,93 +26,85 @@ import java.util.ArrayList;
 
 final public class MovieAvgRatingRdd {
 
-    private static Logger logger = LoggerFactory.getLogger(MovieAvgRatingRdd.class);
+	private static Logger logger = LoggerFactory.getLogger(MovieAvgRatingRdd.class);
 
-    public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception {
 
-        if (args.length != 3) {
-            System.err.println("Usage: com.example.MovieAvgRatingRdd <movie file> <rating file> <Output path>");
-            System.exit(1);
-        }
+		if (args.length != 3) {
+			System.err.println("Usage: com.example.MovieAvgRatingRdd <movie file> <rating file> <Output path>");
+			System.exit(1);
+		}
 
-        logger.info("Input for movies data set: " + args[0]);
+		logger.info("Input for movies data set: " + args[0]);
 
-        SparkConf sparkConf = new SparkConf().setAppName("Movie Lens Analyzer");
-        sparkConf.setIfMissing("spark.master", "local[*]");
+		SparkConf sparkConf = new SparkConf().setAppName("Movie Lens Analyzer");
+		sparkConf.setIfMissing("spark.master", "local[*]");
 
-        JavaSparkContext sc = new JavaSparkContext(sparkConf);
+		JavaSparkContext sc = new JavaSparkContext(sparkConf);
 
+		JavaRDD<String> moviesRdd = sc.textFile(args[0], 1);
 
+		logger.info("Number of records in movies dataset: " + moviesRdd.count());
 
-        JavaRDD<String> moviesRdd = sc.textFile(args[0], 1);
+		logger.info("Sample values from the movies dataset");
+		for (String s : moviesRdd.take(10)) {
+			logger.info(s);
+		}
 
-        logger.info("Number of records in movies dataset: " + moviesRdd.count());
+		JavaPairRDD<String, String> moviesData = moviesRdd.filter(s -> !s.startsWith("movieId,title,genres"))
+				.mapToPair(s -> {
+					String[] tokens = s.split(",");
+					return new Tuple2<>(tokens[0], tokens[1]);
+				});
 
-        logger.info("Sample values from the movies dataset");
-        for (String s : moviesRdd.take(10)) {
-            logger.info(s);
-        }
+		logger.info("Loading ratings rdd");
+		JavaRDD<String> ratingsRdd = sc.textFile(args[1], 1);
 
-        JavaPairRDD<String, String> moviesData = moviesRdd
-                .filter(s -> !s.startsWith("movieId,title,genres"))
-                .mapToPair(s -> {
-                    String[] tokens = s.split(",");
-                    return new Tuple2<>(tokens[0], tokens[1]);
-                });
+		JavaPairRDD<String, Double> ratingsData = ratingsRdd
+				.filter(s -> !s.startsWith("userId,movieId,rating,timestamp")).mapToPair(s -> {
+					String[] tokens = s.split(",");
+					return new Tuple2<>(tokens[1], Double.valueOf(tokens[2]));
+				});
 
-        logger.info("Loading ratings rdd");
-        JavaRDD<String> ratingsRdd = sc.textFile(args[1], 1);
+		logger.info("No of records in ratings rdd: " + ratingsData.count());
 
+		JavaPairRDD<String, Tuple2<String, Double>> joined = moviesData.join(ratingsData);
+		// The values will movieId, title, and rating
 
-        JavaPairRDD<String, Double> ratingsData = ratingsRdd
-                .filter(s -> !s.startsWith("userId,movieId,rating,timestamp"))
-                .mapToPair(s -> {
-                    String[] tokens = s.split(",");
-                    return new Tuple2<>(tokens[1], Double.valueOf(tokens[2]));
-                });
+		JavaPairRDD<String, Iterable<Tuple2<String, Double>>> grouped = joined.groupByKey();
 
-        logger.info("No of records in ratings rdd: " + ratingsData.count());
+		JavaPairRDD<String, Tuple2<String, Double>> avgRating = grouped.mapValues(values -> {
 
-        JavaPairRDD<String, Tuple2<String, Double>> joined = moviesData.join(ratingsData);
-        // The values will movieId, title, and rating
+			Double sum = 0.0;
+			Integer count = 0;
+			String title = null;
+			for (Tuple2<String, Double> t : values) {
+				sum += t._2;
+				++count;
+				title = t._1;
+			}
+			Double avg = sum / count;
+			return new Tuple2<>(title, avg);
+		});
 
-        JavaPairRDD<String, Iterable<Tuple2<String, Double>>> grouped = joined.groupByKey();
+		JavaRDD<String> avgRatingFlat = avgRating.map(t -> t._1 + "," + t._2._1 + ", " + t._2._2);
 
-        JavaPairRDD<String, Tuple2<String, Double>> avgRating = grouped.mapValues(values -> {
+		// Display the values
+		for (String s : avgRatingFlat.collect()) {
+			System.out.println(s);
+		}
 
-            Double sum = 0.0;
-            Integer count = 0;
-            String title = null;
-            for(Tuple2<String, Double> t: values){
-                sum += t._2;
-                ++ count;
-                title = t._1;
-            }
-            Double avg = sum / count;
-            return new Tuple2<>(title, avg);
-        });
+		logger.info("Saving the result to " + args[2]);
+		avgRatingFlat.saveAsTextFile(args[2]);
 
+		System.out.println("Process is complete.");
 
-        JavaRDD<String> avgRatingFlat = avgRating
-                .map(t -> t._1 + "," + t._2._1 + ", " + t._2._2);
+		// A better solution would have been find the average rating from ratings.csv
+		// then join that result back with the movies.csv data
 
-        //Display the values
-        for(String s: avgRatingFlat.collect()){
-            System.out.println(s);
-        }
+		sc.stop();
+		sc.close();
 
-        logger.info("Saving the result to " + args[2]);
-        avgRatingFlat.saveAsTextFile(args[2]);
-
-        System.out.println("Process is complete.");
-
-
-        // A better solution would have been find the average rating from ratings.csv
-        // then join that result back with the movies.csv data
-
-        sc.stop();
-        sc.close();
-
-    }
+	}
 
 }
