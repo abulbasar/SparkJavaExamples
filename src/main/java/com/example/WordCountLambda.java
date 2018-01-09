@@ -1,19 +1,17 @@
 package com.example;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.Function2;
-import org.apache.spark.api.java.function.PairFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
+import scala.Tuple2;
 
 
 /*
@@ -51,7 +49,7 @@ public final class WordCountLambda {
         JavaSparkContext sc = new JavaSparkContext(sparkConf);
         JavaRDD<String> lines = sc.textFile(args[0], 1);
 
-        JavaRDD<String> words = lines.flatMap((s) -> Arrays.asList(SPACE.split(s.toLowerCase())));
+        JavaRDD<String> words = lines.flatMap((s) -> Arrays.asList(SPACE.split(s.toLowerCase())).iterator());
 
         JavaPairRDD<String, Integer> ones = words.mapToPair(word -> new Tuple2<>(word, 1));
 
