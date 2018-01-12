@@ -12,9 +12,9 @@ import org.apache.spark.sql.Row;
 
 Prepare the mysql database
 1. create database
-create database iot;
+mysql> create database iot;
 2. Create a table inside iot database
-create table tags(tag varchar(255) primary key not null, count bigint not null);
+mysql> create table tags(tag varchar(255) primary key not null, count bigint not null);
 
 Add mysql jdbc as maven dependency to the project.
 
