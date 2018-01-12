@@ -22,8 +22,7 @@ public class StreamAppForeachSink {
 
 	public static void main(String[] args) throws AnalysisException,
 			StreamingQueryException {
-		
-		String outPath = args[0];
+				
 		String checkpointDir = args[1];
 		
 		ObjectMapper mapper = new ObjectMapper();
