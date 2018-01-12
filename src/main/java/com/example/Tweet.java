@@ -1,3 +1,5 @@
+package com.example;
+
 import java.io.Serializable;
 
 public class Tweet implements Serializable {
