@@ -16,7 +16,7 @@ import org.apache.spark.sql.streaming.Trigger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class StreamApp {
+public class StructuredStreamTweets {
 
 	private static SparkSession spark = null;
 
@@ -24,7 +24,7 @@ public class StreamApp {
 			StreamingQueryException {
 		ObjectMapper mapper = new ObjectMapper();
 
-		SparkConf conf = new SparkConf().setAppName(StreamApp.class.getName())
+		SparkConf conf = new SparkConf().setAppName(StructuredStreamTweets.class.getName())
 				.setIfMissing("spark.master", "local[*]")
 				.setIfMissing("spark.sql.shuffle.partitions", "2");
 
