@@ -16,6 +16,13 @@ import org.apache.spark.sql.streaming.Trigger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/*
+Start streaming source
+$ cd ~/Downloads
+$ java Stream datasets/tweets.json 9999 1
+*/
+
+
 public class StructuredStreamTweets {
 
 	private static SparkSession spark = null;
