@@ -22,10 +22,10 @@ public class StreamAppForeachSink {
 
 	public static void main(String[] args) throws AnalysisException,
 			StreamingQueryException {
-				
-		String checkpointDir = args[1];
+
+		String checkpointDir = args[0];
 		
-		ObjectMapper mapper = new ObjectMapper();
+		
 
 		SparkConf conf = new SparkConf().setAppName(StreamAppForeachSink.class.getName())
 				.setIfMissing("spark.master", "local[*]")
@@ -37,8 +37,23 @@ public class StreamAppForeachSink {
 		Dataset<String> rawStream = spark.readStream().format("socket")
 				.option("host", "localhost").option("port", "9999").load()
 				.as(Encoders.STRING());
+	
+		rawStream.printSchema();
+		System.out.println("Is streaming: " + rawStream.isStreaming());
+		
+		
+		
+		Dataset<Row> tweets = rawStream
+		.select(functions.from_json(functions.col("value"), Encoders.bean(Tweet.class).schema()).as("root"))
+		.selectExpr("root.*")
+		.withColumn("timestamp", functions.current_timestamp());
+		
+		System.out.println("Schema of tweets streaming dataset");
+		tweets.printSchema();
 
-		Dataset<Row> tweets = rawStream.mapPartitions(
+		/*
+		 ObjectMapper mapper = new ObjectMapper(); 
+		 Dataset<Row> tweets = rawStream.mapPartitions(
 				items -> {
 					List<Tweet> tweetsIters = new ArrayList<Tweet>();
 					while (items.hasNext()) {
@@ -51,10 +66,8 @@ public class StreamAppForeachSink {
 					}
 					return tweetsIters.iterator();
 				}, Encoders.bean(Tweet.class)).withColumn("timestamp",
-				functions.current_timestamp());
+				functions.current_timestamp());*/
 
-		System.out.println("Is streaming: " + rawStream.isStreaming());
-		tweets.printSchema();
 		
 		Dataset<Row> tagsAgg = tweets.withColumn(
 				"tag",
@@ -65,7 +78,7 @@ public class StreamAppForeachSink {
 				.count();
 
 		tagsAgg.writeStream()
-				.outputMode(OutputMode.Complete())
+				.outputMode(OutputMode.Update())
 				.trigger(Trigger.ProcessingTime("5 seconds"))
 				.foreach(new CustomForEachSink())
 				.start();
@@ -73,3 +86,4 @@ public class StreamAppForeachSink {
 		spark.streams().awaitAnyTermination();
 	}
 }
+
