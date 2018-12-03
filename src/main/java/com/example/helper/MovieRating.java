@@ -1,4 +1,4 @@
-package com.example;
+package com.example.helper;
 
 /* Java bean to convert Ratings RDD to Dataframe*/
 public class MovieRating {

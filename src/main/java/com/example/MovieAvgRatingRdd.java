@@ -61,7 +61,8 @@ final public class MovieAvgRatingRdd {
 		JavaRDD<String> ratingsRdd = sc.textFile(args[1], 1);
 
 		JavaPairRDD<String, Double> ratingsData = ratingsRdd
-				.filter(s -> !s.startsWith("userId,movieId,rating,timestamp")).mapToPair(s -> {
+				.filter(s -> !s.startsWith("userId,movieId,rating,timestamp"))
+				.mapToPair(s -> {
 					String[] tokens = s.split(",");
 					return new Tuple2<>(tokens[1], Double.valueOf(tokens[2]));
 				});

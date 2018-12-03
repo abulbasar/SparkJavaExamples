@@ -3,6 +3,7 @@ package com.exmple;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.CustomForEachSink;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.Dataset;
@@ -15,6 +16,7 @@ import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.streaming.Trigger;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.example.helper.*;
 
 public class StreamAppForeachSink {
 
@@ -44,7 +46,8 @@ public class StreamAppForeachSink {
 		
 		
 		Dataset<Row> tweets = rawStream
-		.select(functions.from_json(functions.col("value"), Encoders.bean(Tweet.class).schema()).as("root"))
+		.select(functions.from_json(functions.col("value")
+				, Encoders.bean(Tweet.class).schema()).as("root"))
 		.selectExpr("root.*")
 		.withColumn("timestamp", functions.current_timestamp());
 		
@@ -76,6 +79,7 @@ public class StreamAppForeachSink {
 				.withWatermark("timestamp", "30 seconds")
 				.groupBy(functions.col("tag"))
 				.count();
+
 
 		tagsAgg.writeStream()
 				.outputMode(OutputMode.Update())

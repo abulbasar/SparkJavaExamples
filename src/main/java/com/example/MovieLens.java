@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
+import com.example.helper.*;
+
 
 
 /*
@@ -113,7 +115,8 @@ final public class MovieLens {
             logger.info(s);
         }
 
-        JavaRDD<String> ratingsData = ratingsRdd.filter(s -> !s.startsWith("userId,movieId,rating,timestamp"));
+        JavaRDD<String> ratingsData = ratingsRdd.filter(s ->
+                !s.startsWith("userId,movieId,rating,timestamp"));
 
         JavaRDD<MovieRating> ratingsObjects = ratingsData.mapPartitions(input -> {
             CsvParserSettings parserSettings = new CsvParserSettings();
