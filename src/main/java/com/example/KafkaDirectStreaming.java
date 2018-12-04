@@ -12,6 +12,7 @@ import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.streaming.Durations;
 import org.apache.spark.streaming.api.java.JavaPairInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
+import org.apache.spark.streaming.api.java.JavaDStream;
 import org.apache.spark.streaming.dstream.DStream;
 import org.apache.spark.streaming.kafka.KafkaUtils;
 
@@ -48,9 +49,7 @@ public class KafkaDirectStreaming {
 						StringDecoder.class, StringDecoder.class, kafkaParams,
 						topics);
 
-		DStream<String> values = stream.map(p -> {
-			return p._2;
-		}).dstream();
+		JavaDStream<String> values = stream.map(p ->  p._2);
 
 		values.print();
 
