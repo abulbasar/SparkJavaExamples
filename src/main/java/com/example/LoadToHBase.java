@@ -4,7 +4,6 @@ import com.example.helper.Stock;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.hadoop.hbase.client.ConnectionFactory;
@@ -12,15 +11,12 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
 import org.apache.spark.api.java.function.MapFunction;
 import org.apache.spark.sql.*;
 import scala.Tuple2;
-
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -42,7 +38,7 @@ public class LoadToHBase implements Serializable {
         spark = SparkSession.builder().config(conf).getOrCreate();
     }
 
-    private Dataset<Row> loadCsv(String path) {
+    public Dataset<Row> loadCsv(String path) {
         Dataset<Row> dataset = spark.read().option("inferSchema", true).option("header", true).csv(path);
         return dataset;
     }
@@ -143,6 +139,12 @@ public class LoadToHBase implements Serializable {
 
     }
 
+    public Dataset<Row> sql(String statement){
+
+        return spark.sql(statement);
+
+    }
+
     public void close(){
         spark.close();
     }
@@ -150,6 +152,18 @@ public class LoadToHBase implements Serializable {
     public static void main(String[] agrs) {
         String path = "/data/stocks.csv";
         LoadToHBase loadToHBase = new LoadToHBase();
+
+        /*
+        Dataset<Row> dataset = loadToHBase.loadCsv(path);
+
+        dataset.show();
+
+        dataset.filter("year(date) = 2016").groupBy("symbol").agg(functions.avg("volume")).show();
+
+        dataset.createOrReplaceTempView("stocks");
+        dataset.printSchema();
+        loadToHBase.sql("select symbol, avg(volume) from stocks where year(date) = 2016 group by symbol").show();
+        */
         loadToHBase.saveToHBase(path);
         //loadToHBase.createHFiles(path, "/tmp/stocks_hfile");
         loadToHBase.close();

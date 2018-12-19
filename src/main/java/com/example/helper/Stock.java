@@ -125,6 +125,9 @@ public class Stock implements Serializable {
         if(adjclose != null) {
             put.addColumn(infoColumnFamily, adjcloseCol, Bytes.toBytes(adjclose));
         }
+        if(volume != null) {
+            put.addColumn(infoColumnFamily, volumeCol, Bytes.toBytes(volume));
+        }
         if(symbol != null) {
             put.addColumn(infoColumnFamily, symbolCol, Bytes.toBytes(symbol));
         }
