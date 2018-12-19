@@ -1,12 +1,17 @@
 package com.example.helper;
 
+import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
+import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.util.Bytes;
+import scala.Tuple2;
 
 import java.io.Serializable;
 import java.sql.Date;
-
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 
 public class Stock implements Serializable {
@@ -130,6 +135,22 @@ public class Stock implements Serializable {
         return put;
     }
 
+    public Iterator<Tuple2<ImmutableBytesWritable, KeyValue>> toKVPairs(){
+        long epoch = date.getTime();
+        byte[] rowkey = Bytes.toBytes(String.format("%s-%d", symbol, epoch));
+        List<KeyValue> keyValues = new ArrayList<>();
+
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, openCol, Bytes.toBytes(open)));
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, closeCol, Bytes.toBytes(close)));
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, highCol, Bytes.toBytes(high)));
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, lowCol, Bytes.toBytes(low)));
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, adjcloseCol, Bytes.toBytes(adjclose)));
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, dateCol, Bytes.toBytes(epoch)));
+        keyValues.add(new KeyValue(rowkey, infoColumnFamily, symbolCol, Bytes.toBytes(symbol)));
+
+        return keyValues.stream().map(r -> new Tuple2<>(new ImmutableBytesWritable(rowkey), r)).iterator();
+    }
+
     public static Stock parse(Result result){
         Stock stock = new Stock();
         stock.setOpen(Bytes.toDouble(result.getValue(infoColumnFamily, openCol)));
@@ -146,6 +167,12 @@ public class Stock implements Serializable {
 
         return stock;
 
+    }
+
+    public ImmutableBytesWritable toKey(){
+        long epoch = date.getTime();
+        byte[] rowkey = Bytes.toBytes(String.format("%s-%d", symbol, epoch));
+        return new ImmutableBytesWritable(rowkey);
     }
 
 
