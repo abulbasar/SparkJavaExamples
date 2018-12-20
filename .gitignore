@@ -27,3 +27,9 @@ hs_err_pid*
 .settings
 .project
 /.idea/
+spark.log
+/spark-warehouse/
+.DS_Store
+
+
+
