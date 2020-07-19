@@ -1,26 +1,20 @@
 package com.example.rdd;
 
-import com.example.models.AvgVolumeByStock;
 import com.example.models.Stock;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.spark.Accumulator;
-import org.apache.spark.Partitioner;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.broadcast.Broadcast;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import java.io.Serializable;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 public class BroadcastAndAccumulator implements Serializable {
 
@@ -62,14 +56,14 @@ public class BroadcastAndAccumulator implements Serializable {
         final List<String> watchListStocks = Arrays.asList("GE", "FB", "INTC", "AAPL");
 
         final Broadcast<List<String>> broadcastWhitelistStocks = sc.broadcast(watchListStocks);
-
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         final JavaRDD<Stock> stockRdd = rdd2019.map(line -> {
             final String[] split = line.split(",");
             final Stock stock = new Stock();
             stock.setSymbol(split[7]);
             stock.setClose(Double.valueOf(split[4]));
-            stock.setDate(LocalDate.parse(split[0]));
+            stock.setDate(new Date(simpleDateFormat.parse(split[0]).getTime()));
             stock.setHigh(Double.valueOf(split[2]));
             stock.setLow(Double.valueOf(split[3]));
             stock.setVolume(Double.valueOf(split[5]));

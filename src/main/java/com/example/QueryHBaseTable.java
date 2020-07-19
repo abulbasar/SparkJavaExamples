@@ -1,6 +1,6 @@
 package com.example;
 
-import com.example.helper.Stock;
+import com.example.models.Stock;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -27,7 +27,7 @@ public class QueryHBaseTable {
         spark = SparkSession.builder().config(conf).getOrCreate();
     }
 
-    public void loadFromHBase( ){
+    public void loadFromHBase() {
 
         Configuration configuration = HBaseConfiguration.create();
         String path = LoadToHBase.class
@@ -50,8 +50,8 @@ public class QueryHBaseTable {
         df.show();
         try {
             df.createTempView("stocks_hbase");
-        }catch (AnalysisException ex){
-            ex.printStackTrace();
+        }catch (Exception e){
+            e.printStackTrace();
         }
 
         spark.sql("select symbol, max(100*(close-open)/open) as pct_max from stocks_hbase where year(date) = 2016 group by symbol order by abs(pct_max) desc").show();

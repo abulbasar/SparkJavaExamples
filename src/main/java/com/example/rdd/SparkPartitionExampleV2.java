@@ -13,6 +13,8 @@ import org.slf4j.LoggerFactory;
 import scala.Tuple2;
 
 import java.io.Serializable;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
@@ -101,13 +103,15 @@ public class SparkPartitionExampleV2 implements Serializable {
         //waitForUser("added to cache");
 
         final JavaRDD<String> rdd2019 = rdd.filter(line -> line.startsWith("2019"));
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 
         final JavaRDD<Stock> stockRdd = rdd2019
                 .map(line -> {
                     final String[] split = line.split(",");
                     final Stock stock = new Stock();
                     stock.setSymbol(split[7]);
-                    stock.setDate(LocalDate.parse(split[0]));
+                    stock.setDate(new Date(simpleDateFormat.parse(split[0]).getTime()));
                     stock.setHigh(Double.valueOf(split[2]));
                     stock.setLow(Double.valueOf(split[3]));
                     stock.setVolume(Double.valueOf(split[5]));

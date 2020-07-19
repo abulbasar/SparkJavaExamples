@@ -1,13 +1,11 @@
 package com.example.df;
 
 import com.example.models.Stock;
-import com.example.rdd.SparkPartitionExampleV2;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.*;
-import org.apache.spark.sql.expressions.UserDefinedFunction;
 import org.apache.spark.sql.types.DataTypes;
 
 import java.text.SimpleDateFormat;
@@ -114,13 +112,15 @@ public class DataFrameDemo {
 
         rdd.take(10);
 
+        final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 
         final JavaRDD<Stock> stockRdd = rdd
                 .map(line -> {
                     final String[] split = line.split(",");
                     final Stock stock = new Stock();
                     stock.setSymbol(split[7]);
-                    stock.setDate(LocalDate.parse(split[0]));
+                    stock.setDate(new java.sql.Date(simpleDateFormat.parse(split[0]).getTime()));
                     stock.setHigh(Double.valueOf(split[2]));
                     stock.setLow(Double.valueOf(split[3]));
                     stock.setVolume(Double.valueOf(split[5]));

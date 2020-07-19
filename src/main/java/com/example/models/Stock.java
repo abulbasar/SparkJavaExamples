@@ -1,4 +1,4 @@
-package com.example.helper;
+package com.example.models;
 
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.Put;
