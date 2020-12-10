@@ -86,6 +86,7 @@ public class StockAnalyzer implements Serializable {
         });
 
 
+
         System.out.println("Stock RDD");
         show(stockRdd);
 
