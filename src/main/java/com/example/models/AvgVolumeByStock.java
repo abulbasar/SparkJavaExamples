@@ -7,6 +7,4 @@ import lombok.Data;
 public class AvgVolumeByStock {
     private String symbol;
     private Double volume;
-
-
 }
