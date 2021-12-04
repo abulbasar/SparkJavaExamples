@@ -10,7 +10,6 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
-import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.function.ForeachPartitionFunction;
@@ -130,12 +129,12 @@ public class LoadToHBase implements Serializable {
                 .getPath();
         configuration.addResource(new Path(resourcePath));
 
-        configuration.set(TableOutputFormat.OUTPUT_TABLE, "ns1:stocks");
-        pairRdd.saveAsNewAPIHadoopFile(outputPath
-                , ImmutableBytesWritable.class
-                , Put.class
-                , TableOutputFormat.class
-                , configuration);
+//        configuration.set(TableOutputFormat.OUTPUT_TABLE, "ns1:stocks");
+//        pairRdd.saveAsNewAPIHadoopFile(outputPath
+//                , ImmutableBytesWritable.class
+//                , Put.class
+//                , TableOutputFormat.class
+//                , configuration);
 
     }
 
