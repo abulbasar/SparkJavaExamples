@@ -1,4 +1,4 @@
-package com.example.df;
+package com.example.dataframe;
 
 import com.example.models.Stock;
 import org.apache.spark.SparkConf;
@@ -9,7 +9,6 @@ import org.apache.spark.sql.*;
 import org.apache.spark.sql.types.DataTypes;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.Date;
 
 public class DataFrameDemo {

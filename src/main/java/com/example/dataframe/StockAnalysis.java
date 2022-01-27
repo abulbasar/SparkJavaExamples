@@ -1,4 +1,4 @@
-package com.example.df;
+package com.example.dataframe;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;

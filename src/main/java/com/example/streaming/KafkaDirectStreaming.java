@@ -1,4 +1,4 @@
-package com.example;
+package com.example.streaming;
 
 import java.util.Collections;
 import java.util.HashMap;

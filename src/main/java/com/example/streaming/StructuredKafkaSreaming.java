@@ -1,4 +1,4 @@
-package com.example;
+package com.example.streaming;
 
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.Dataset;

@@ -1,9 +1,5 @@
-package com.example;
+package com.example.streaming;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import com.example.CustomForEachSink;
 import org.apache.spark.SparkConf;
 import org.apache.spark.sql.AnalysisException;
 import org.apache.spark.sql.Dataset;
@@ -15,7 +11,6 @@ import org.apache.spark.sql.streaming.OutputMode;
 import org.apache.spark.sql.streaming.StreamingQueryException;
 import org.apache.spark.sql.streaming.Trigger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.helper.*;
 
 public class StreamAppForeachSink {
